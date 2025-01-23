@@ -3,6 +3,9 @@
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import torch
 import tiktoken
+from GPTDatasetV1 import GPTDatasetV1
+from torch.utils.data import DataLoader
+import os
 
 
 
@@ -26,9 +29,16 @@ def create_dataloader_v1(txt, batch_size=4, max_length=256,
 
 
 if __name__ == '__main__':
+
+    path = os.getcwd()
+    print(path)
+    with open(path + "/../resources/the_verdict.txt", "r", encoding="utf-8") as f:
+        raw_text = f.read()
     vocab_size = 50257
     output_dim = 256
     token_embedding_layer = torch.nn.Embedding(vocab_size, output_dim)
+
+
 
     max_length = 4
     dataloader = create_dataloader_v1(
@@ -41,3 +51,16 @@ if __name__ == '__main__':
     print("\nInputs shape:\n", inputs.shape)
 
     print("Embedding layers perform a lookup operation")
+    token_embeddings = token_embedding_layer(inputs)
+    print(token_embeddings.shape)
+
+
+    #  GPT model’s absolute embedding approach,
+    context_length = max_length
+    pos_embedding_layer = torch.nn.Embedding(context_length, output_dim)
+    pos_embeddings = pos_embedding_layer(torch.arange(context_length))
+    print(pos_embeddings.shape)
+
+    #  the embedded input examples that can now be processed by the main LLM modules
+    input_embeddings = token_embeddings + pos_embeddings
+    print(input_embeddings.shape)
